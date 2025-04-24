@@ -1,0 +1,32 @@
+{
+    "1": {
+        "name": "coucou",
+        "participants": [
+            "gg",
+            "marjo"
+        ],
+        "expenses": [
+            {
+                "description": "as",
+                "amount": 1.0,
+                "paid_by": "gg",
+                "owed_by": [
+                    "gg",
+                    "marjo"
+                ]
+            },
+            {
+                "description": "sadasd",
+                "amount": 23.0,
+                "paid_by": "gg",
+                "owed_by": [
+                    "gg",
+                    "marjo"
+                ],
+                "expense_date": "2025-04-22",
+                "date_added": "2025-04-21T13:15:18.468501",
+                "last_modified": "2025-04-21T13:17:07.516395"
+            }
+        ]
+    }
+}

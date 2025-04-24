@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Categories</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center py-8">
+    <div class="container mx-auto bg-white p-6 rounded-lg shadow-md w-full max-w-md">
+        <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">Expense Categories</h1>
+
+         {# Flash messages #}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-4">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} p-3 rounded-md {% if category == 'success' %}bg-green-200 text-green-800{% elif category == 'warning' %}bg-yellow-200 text-yellow-800{% elif category == 'danger' %}bg-red-200 text-red-800{% else %}bg-gray-200 text-gray-800{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% if categories %}
+            <ul class="list-disc list-inside mb-6">
+                {% for category in categories %}
+                    <li class="text-lg text-gray-700 mb-2 flex justify-between items-center">
+                        <span>{{ category.name }}</span>
+                        {# Delete Category Form #}
+                        <form method="POST" action="{{ url_for('trip_blueprint.delete_category', category_id=category.id) }}" onsubmit="return confirm('Are you sure you want to delete the category \'{{ category.name }}\'? This will uncategorize any expenses using it.');">
+                            <button type="submit" class="text-red-600 hover:underline text-sm bg-transparent border-none p-0 cursor-pointer">Delete</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-gray-600 mb-4">No categories created yet.</p>
+        {% endif %}
+
+        {# Link to Add Category Page #}
+        <div class="text-center mb-4">
+            <a href="{{ url_for('trip_blueprint.add_category') }}" class="inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md transition duration-200">
+                Add New Category
+            </a>
+        </div>
+
+        <p class="text-center">
+            {# Link back to the index page #}
+            <a href="{{ url_for('index') }}" class="text-blue-600 hover:underline">Back to Trips</a>
+        </p>
+    </div>
+</body>
+</html>

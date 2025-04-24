@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Expense to {{ trip.name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center py-8">
+    <div class="container mx-auto bg-white p-6 rounded-lg shadow-md w-full max-w-md">
+        <h1 class="text-2xl font-bold mb-6 text-center text-gray-800">Add Expense to {{ trip.name }}</h1>
+        {% if not trip.participants %}
+            <p class="text-red-600 text-center mb-4">Please add participants before adding expenses.</p>
+            <div class="text-center">
+                {# Updated href url_for #}
+                <a href="{{ url_for('trip_blueprint.add_participant', trip_id=trip_id) }}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-200">
+                    Add Participant
+                </a>
+            </div>
+        {% else %}
+            {# Form action url_for remains the same within the blueprint #}
+            <form method="POST" class="flex flex-col">
+                <label for="description" class="block text-gray-700 text-sm font-bold mb-2">Description:</label>
+                <input type="text" id="description" name="description" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-4">
+
+                <label for="amount" class="block text-gray-700 text-sm font-bold mb-2">Amount:</label>
+                <input type="number" id="amount" name="amount" step="0.01" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-4">
+
+                <label for="paid_by" class="block text-gray-700 text-sm font-bold mb-2">Paid By:</label>
+                <select id="paid_by" name="paid_by" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-4">
+                    {% for participant in trip.participants %}
+                        <option value="{{ participant.id }}">{{ participant.name }}</option>
+                    {% endfor %}
+                </select>
+
+                {# Category Selection Dropdown #}
+                <label for="category_id" class="block text-gray-700 text-sm font-bold mb-2">Category (Optional):</label>
+                <select id="category_id" name="category_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-4">
+                    <option value="">-- Select Category --</option> {# Option for no category #}
+                    {% for category in categories %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+
+
+                <label class="block text-gray-700 text-sm font-bold mb-2">Split (Weight) Owed By:</label> {# Updated Label #}
+                <div class="proportion-group mb-4 border p-4 rounded-md grid grid-cols-2 gap-4">
+                    {% for participant in trip.participants %}
+                        <div class="flex items-center">
+                             <label for="proportion_{{ participant.id }}" class="mr-2 text-gray-700">{{ participant.name }}:</label>
+                             {# Pre-fill with default weight from the dictionary, otherwise default to 1 #}
+                             <input type="number" id="proportion_{{ participant.id }}" name="proportion_{{ participant.id }}"
+                                    value="{{ '%.0f' | format(default_proportions.get(participant.id | string, 1.00)) }}" {# Format as integer #}
+                                    min="0" class="shadow appearance-none border rounded w-20 py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"> {# Removed step="0.01" #}
+                        </div>
+                    {% endfor %}
+                </div>
+
+
+                <label for="expense_date" class="block text-gray-700 text-sm font-bold mb-2">Expense Date:</label>
+                <input type="date" id="expense_date" name="expense_date" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-4">
+
+                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:shadow-outline transition duration-200">
+                    Add Expense
+                </button>
+            </form>
+        {% endif %}
+        <p class="text-center mt-4">
+            {# Updated href url_for #}
+            <a href="{{ url_for('trip_blueprint.view_trip', trip_id=trip_id) }}" class="text-blue-600 hover:underline">Back to Trip Details</a>
+        </p>
+    </div>
+</body>
+</html>

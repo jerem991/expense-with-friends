@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balances for {{ trip.name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center py-8">
+    <div class="container mx-auto bg-white p-6 rounded-lg shadow-md w-full max-w-md">
+        <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">Balances for {{ trip.name }}</h1>
+
+        <h2 class="text-2xl font-semibold mb-4 text-gray-700">Net Balances</h2>
+        {% if balances %}
+            <ul class="list-disc list-inside mb-6">
+                {% for participant, balance in balances.items() %}
+                    <li class="text-lg text-gray-700">
+                        {{ participant }}:
+                        {% if balance > 0 %}
+                            <span class="text-green-600">{{ "%.2f" | format(balance) }}</span> (Is Owed)
+                        {% elif balance < 0 %}
+                            <span class="text-red-600">{{ "%.2f" | format(balance | abs) }}</span> (Owes)
+                        {% else %}
+                            <span class="text-gray-600">Settled</span>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-gray-600 mb-4">No balances to display yet. Add some expenses!</p>
+        {% endif %}
+
+        <h2 class="text-2xl font-semibold mb-4 text-gray-700">Simplified Transactions</h2>
+        {% if transactions %}
+            <ul class="list-disc list-inside mb-6">
+                {% for transaction in transactions %}
+                    <li class="text-lg text-gray-700">
+                        {{ transaction.from }} owes {{ transaction.to }} <span class="font-semibold">{{ "%.2f" | format(transaction.amount) }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-gray-600 mb-4">No transactions needed for settlement.</p>
+        {% endif %}
+
+        <p class="text-center mt-4">
+            {# Updated href url_for #}
+            <a href="{{ url_for('trip_blueprint.view_trip', trip_id=trip_id) }}" class="text-blue-600 hover:underline">Back to Trip Details</a>
+        </p>
+    </div>
+</body>
+</html>

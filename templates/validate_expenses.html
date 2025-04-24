@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validate Expenses for {{ trip.name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center py-8">
+    {# Removed max-w-4xl to allow the container to be wider #}
+    <div class="container mx-auto bg-white p-6 rounded-lg shadow-md w-full">
+        <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">Validate Expenses for {{ trip.name }}</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-4">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} p-3 rounded-md {% if category == 'success' %}bg-green-200 text-green-800{% elif category == 'warning' %}bg-yellow-200 text-yellow-800{% elif category == 'danger' %}bg-red-200 text-red-800{% else %}bg-gray-200 text-gray-800{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% if extracted_expenses %}
+            {# Form action url_for remains the same within the blueprint #}
+            <form method="POST" action="{{ url_for('trip_blueprint.validate_expenses', trip_id=trip_id) }}">
+                <input type="hidden" name="trip_id" value="{{ trip_id }}"> {# Pass trip_id in form #}
+
+                {# Single Paid By selection for all expenses #}
+                <div class="mb-6 p-4 border border-gray-300 rounded-md flex items-center gap-4">
+                    <label for="paid_by_all" class="block text-gray-700 text-sm font-bold">All Expenses Paid By:</label>
+                    <select id="paid_by_all" name="paid_by_all" required class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="">-- Select Payer --</option> {# Add a default empty option #}
+                        {% for participant in trip.participants %}
+                            {# You might want to pre-select a participant if the PDF extraction provides a hint #}
+                            <option value="{{ participant.id }}">{{ participant.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+
+                <div class="overflow-x-auto mb-6 w-full">
+                    <table class="min-w-full bg-white border border-gray-200 rounded-md">
+                        <thead>
+                            <tr>
+                                <th class="py-2 px-4 bg-gray-200 text-gray-600 font-bold uppercase text-sm text-left border-b">Accept</th>
+                                <th class="py-2 px-4 bg-gray-200 text-gray-600 font-bold uppercase text-sm text-left border-b">Description</th>
+                                <th class="py-2 px-4 bg-gray-200 text-gray-600 font-bold uppercase text-sm text-left border-b">Amount</th>
+                                <th class="py-2 px-4 bg-gray-200 text-gray-600 font-bold uppercase text-sm text-left border-b">Category</th> {# New Category Header #}
+                                <th class="py-2 px-4 bg-gray-200 text-gray-600 font-bold uppercase text-sm text-left border-b">Expense Date</th>
+                                <th class="py-2 px-4 bg-gray-200 text-gray-600 font-bold uppercase text-sm text-left border-b">Split (Weight)</th> {# Updated Header #}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for expense in extracted_expenses %}
+                                {# Capture the outer loop index in a variable #}
+                                {% set expense_index = loop.index0 %}
+                                <tr class="{% if loop.index is odd %}bg-gray-50{% else %}bg-white{% endif %}">
+                                    <td class="py-2 px-4 border-b text-gray-700">
+                                        <input type="checkbox" name="accept_expense_{{ expense_index }}" checked class="form-checkbox h-4 w-4 text-green-600"> {# Checkbox to accept/reject #}
+                                        {# Hidden inputs to pass original data for accepted expenses (excluding paid_by_name and expense_date now) #}
+                                        <input type="hidden" name="description_{{ expense_index }}" value="{{ expense.description }}">
+                                        <input type="hidden" name="amount_{{ expense_index }}" value="{{ expense.amount }}">
+                                    </td>
+                                    <td class="py-2 px-4 border-b text-gray-700">{{ expense.description }}</td>
+                                    <td class="py-2 px-4 border-b text-gray-700">{{ "%.2f" | format(expense.amount) }}</td>
+                                    <td class="py-2 px-4 border-b text-gray-700">
+                                        {# Category Selection Dropdown for each expense #}
+                                        <select name="category_{{ expense_index }}" class="shadow appearance-none border rounded w-full py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-sm">
+                                            <option value="">-- Select Category --</option> {# Option for no category #}
+                                            {% for category in categories %}
+                                                {# Pre-select the guessed category if available #}
+                                                <option value="{{ category.id }}" {% if expense.category_id is not none and expense.category_id == category.id %}selected{% endif %}>
+                                                    {{ category.name }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        {# Display guessed category name if available and no category selected #}
+                                        {% if expense.category_name and expense.category_id is none %}
+                                            <p class="text-xs text-gray-500 mt-1">Guessed: {{ expense.category_name }}</p>
+                                        {% endif %}
+                                    </td>
+                                    <td class="py-2 px-4 border-b text-gray-700">
+                                        {# Input field for Expense Date #}
+                                        <input type="date" name="expense_date_{{ expense_index }}" value="{{ expense.expense_date }}" required class="shadow appearance-none border rounded w-full py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-sm">
+                                    </td>
+                                    <td class="py-2 px-4 border-b text-gray-700">
+                                        {# Input fields for weights for each participant #}
+                                        <div class="grid grid-cols-2 gap-2">
+                                            {% for participant in trip.participants %}
+                                                <div class="flex items-center">
+                                                    {# Use the captured expense_index variable #}
+                                                    <label for="proportion_{{ expense_index }}_{{ participant.id }}" class="mr-1 text-gray-700 text-sm">{{ participant.name[0] }}:</label> {# Use initial for space #}
+                                                    {# Pre-fill with default weight if set, otherwise default to 1 #}
+                                                     <input type="number" id="proportion_{{ expense_index }}_{{ participant.id }}" name="proportion_{{ expense_index }}_{{ participant.id }}"
+                                                            value="{{ '%.0f' | format(default_proportions.get(participant.id | string, 1.00)) }}" {# Default weight is 1 #}
+                                                            min="0" class="shadow appearance-none border rounded w-16 py-0.5 px-1 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-sm"> {# Removed step="0.01" #}
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="text-center">
+                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:shadow-outline transition duration-200">
+                        Save Validated Expenses
+                    </button>
+                </div>
+            </form>
+        {% else %}
+            <p class="text-gray-600 text-center">No expenses found for validation.</p>
+        {% endif %}
+
+        <p class="text-center mt-4">
+            {# Updated href url_for #}
+            <a href="{{ url_for('trip_blueprint.view_trip', trip_id=trip_id) }}" class="text-blue-600 hover:underline">Back to Trip Details</a>
+        </p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Expense Category</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center py-8">
+    <div class="container mx-auto bg-white p-6 rounded-lg shadow-md w-full max-w-sm">
+        <h1 class="text-2xl font-bold mb-6 text-center text-gray-800">Add New Expense Category</h1>
+
+         {# Flash messages #}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-4">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} p-3 rounded-md {% if category == 'success' %}bg-green-200 text-green-800{% elif category == 'warning' %}bg-yellow-200 text-yellow-800{% elif category == 'danger' %}bg-red-200 text-red-800{% else %}bg-gray-200 text-gray-800{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {# Form to add a new category #}
+        <form method="POST" class="flex flex-col">
+            <label for="category_name" class="block text-gray-700 text-sm font-bold mb-2">Category Name:</label>
+            <input type="text" id="category_name" name="category_name" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-4">
+
+            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:shadow-outline transition duration-200">
+                Add Category
+            </button>
+        </form>
+
+        <p class="text-center mt-4">
+            {# Link back to the list categories page #}
+            <a href="{{ url_for('trip_blueprint.list_categories') }}" class="text-blue-600 hover:underline">Back to Categories List</a>
+        </p>
+    </div>
+</body>
+</html>
