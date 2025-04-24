@@ -1,4 +1,4 @@
-## Expense with friends
+## Expense with friends / Vibe coded with Gemini 2.5
 
 This project is a web application designed to help groups of people manage shared expenses, similar to the popular Tricount application. It allows users to create trips, add participants, record expenses, and calculate who owes whom to settle balances.
 Project Goal
